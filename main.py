@@ -6,7 +6,7 @@ from urllib.parse import urlparse
 app = Flask(__name__)
 
 # Подключение к БД
-DATABASE_URL = os.environ.get('postgresql://serverless_db_vri1_user:cCSRxXieKm556DGhzfmgLrLy5mGlzhvg@dpg-d4ce7k8dl3ps73bep38g-a/serverless_db_vri1')
+DATABASE_URL = os.environ.get('DATABASE_URL')
 if DATABASE_URL:
     url = urlparse(DATABASE_URL)
     conn = psycopg2.connect(
@@ -31,6 +31,7 @@ if conn:
         """)
         conn.commit()
 
+
 @app.route('/save', methods=['POST'])
 def save_message():
     if not conn:
@@ -45,6 +46,7 @@ def save_message():
 
     return jsonify({"status": "saved", "message": message})
 
+
 @app.route('/messages')
 def get_messages():
     if not conn:
@@ -56,3 +58,22 @@ def get_messages():
 
     messages = [{"id": r[0], "text": r[1], "time": r[2].isoformat()} for r in rows]
     return jsonify(messages)
+
+
+@app.route('/')
+def hello():
+    return "Hello, Serverless! 🚀\n", 200, {'Content-Type': 'text/plain'}
+
+
+@app.route('/echo', methods=['POST'])
+def echo():
+    data = request.get_json()
+    return jsonify({
+        "status": "received",
+        "you_sent": data,
+        "length": len(str(data)) if data else 0
+    })
+
+
+if __name__ == '__main__':
+    app.run(host='0.0.0.0', port=5000)
